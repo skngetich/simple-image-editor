@@ -1,6 +1,6 @@
 #import modules
 from PIL import Image,ImageTk,ImageFilter
-from tkinter import Label, Tk,Button,filedialog,Frame
+from tkinter import Label, Tk,Button, Toplevel,filedialog,Frame
 
 #Constants
 FILE_TYPES =[("JPG image",'*.jpg'),("PNG image","*.png")]
@@ -11,6 +11,9 @@ root = Tk()
 root.minsize(width=WINDOW_MIN_WIDTH, height=WINDOW_MIN_HEIGHT)
 root.geometry("500x600")
 root.title("Simple Image Editor")
+
+
+
 
 #Frames
 filter_frame = Frame(root,padx=10,pady=10,width=WINDOW_MIN_WIDTH,height=100,bd=3)
@@ -30,11 +33,11 @@ def upload_file():
 
   img = Image.open(filename)
   width,height = img.size
-  img = img.resize(resize_photo_aspect_ratio(width,height),Image.ANTIALIAS)
+  img = img.resize(resize_photo_aspect_ratio(width,height),Image.Resampling.LANCZOS)
   imgphoto = ImageTk.PhotoImage(img)
 
   e1 = Label(img_frame,image=imgphoto)
-  e1.grid(row=1,column=0)
+  e1.grid(row=2,column=0)
   e1.image = imgphoto
 
   filter_frame.pack()
@@ -47,32 +50,43 @@ l1.grid(row=0,column=0)
 
 Button(upload_frame,text="Upload File",width=20, command=upload_file).grid(row=1,column=0)
 
-def grayscale_photo():
-  imgfilter=ImageTk.PhotoImage( img.filter(ImageFilter.CONTOUR))
-  e1.configure(image=imgfilter)
-  e1.image=imgfilter
 
-def blur_photo():
-  imgfilter=ImageTk.PhotoImage( img.filter(ImageFilter.BLUR))
-  e1.configure(image=imgfilter)
-  e1.image=imgfilter
+def filter_photo(filter_type = None):
+  global current_image
+  if filter_type == 1:
+    current_image=  img.filter(ImageFilter.CONTOUR)
+  elif filter_type == 2:
+    current_image=img.filter(ImageFilter.BLUR)
+  elif filter_type == 3:
+    current_image=img.filter(ImageFilter.EDGE_ENHANCE)
+  else:
+    current_image=img
+  #Create a photo image to be displayed in the GUI
+  photo = ImageTk.PhotoImage(current_image)
+  e1.configure(image=photo)
+  e1.image=photo
 
-def enhance_edge_photo():
-  imgfilter=ImageTk.PhotoImage( img.filter(ImageFilter.EDGE_ENHANCE))
-  e1.configure(image=imgfilter)
-  e1.image=imgfilter
 
 def reset_photo():
   original_image=ImageTk.PhotoImage(img)
   e1.configure(image=original_image)
   e1.image=original_image
 
+def save_photo():
+  file_url = filedialog.asksaveasfilename(filetypes = FILE_TYPES, defaultextension = FILE_TYPES)
+  current_image.save(file_url)
+  # #Success window
+  top = Toplevel()
+  top.geometry("200x200")
+  Label(top,text="The file has been saved..Yaaay!!!").pack()
 
-Button(img_frame,text="Reset",width=20,command=reset_photo).grid(row=0,column=0)
-Button(filter_frame,text="Cartoon",width=20,command=grayscale_photo).grid(row=0,column=1)
-Button(filter_frame,text="Blur",width=20,command=blur_photo).grid(row=0,column=2)
-Button(filter_frame,text="Enhance Edge",width=20,command=enhance_edge_photo).grid(row=0,column=3)
 
+Button(img_frame,text="Reset Photo",width=20,command=lambda: filter_photo(filter_type=0)).grid(row=1,column=0)
+Button(img_frame,text="Save Photo",width=20,command=save_photo).grid(row=0,column=0)
+
+Button(filter_frame,text="Cartoon",width=20,command=lambda: filter_photo(filter_type=1)).grid(row=0,column=1)
+Button(filter_frame,text="Blur",width=20,command=lambda: filter_photo(filter_type=2)).grid(row=0,column=2)
+Button(filter_frame,text="Enhance Edge",width=20,command=lambda: filter_photo(filter_type=3)).grid(row=0,column=3)
 
 
 
